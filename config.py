@@ -2,9 +2,11 @@ import os
 from dotenv import load_dotenv
 
 
-class Config(object):
-    load_dotenv()
+basedir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(basedir, ".env"))
 
+
+class Config(object):
     SECRET_KEY = os.getenv("SECRET_KEY", "you-will-never-guess")
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -16,4 +18,6 @@ class Config(object):
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
     ADMINS = ["dmitrys.test@yandex.ru"]
 
-    POSTS_PER_PAGE = 25
+    OPENSEARCH_URL = os.getenv("OPENSEARCH_URL", None)
+
+    POSTS_PER_PAGE = 3
