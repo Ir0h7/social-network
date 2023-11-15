@@ -18,6 +18,6 @@ class Config(object):
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
     ADMINS = ["dmitrys.test@yandex.ru"]
 
-    OPENSEARCH_URL = os.getenv("OPENSEARCH_URL", None)
+    OPENSEARCH_URL = os.getenv("OPENSEARCH_URL")
 
-    POSTS_PER_PAGE = 3
+    POSTS_PER_PAGE = 10

@@ -28,6 +28,11 @@
                     </form>
                 </p>
                 {% endif %}
+                {% if user != current_user %}
+                <p>
+                    <a href="{{ url_for('main.send_message', recipient=user.username) }}"> Send private message </a>
+                </p>
+                {% endif %}
             </td>
         </tr>
     </table>
@@ -36,14 +41,14 @@
     {% endfor %}
     <nav aria-label="...">
         <ul class="pager">
-            <li class="previous{% if not prev_url %} disabled{% endif %}">
+            <li class="next{% if not prev_url %} disabled{% endif %}">
                 <a href="{{ prev_url or '#' }}">
-                    <span aria-hidden="true">&larr;</span> Newer posts
+                    Newer posts <span aria-hidden="true">&rarr;</span>
                 </a>
             </li>
-            <li class="next{% if not next_url %} disabled{% endif %}">
+            <li class="previous{% if not next_url %} disabled{% endif %}">
                 <a href="{{ next_url or '#' }}">
-                    Older posts <span aria-hidden="true">&rarr;</span>
+                    <span aria-hidden="true">&larr;</span> Older posts
                 </a>
             </li>
         </ul>
