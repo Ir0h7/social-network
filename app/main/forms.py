@@ -1,8 +1,15 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField
+from wtforms import (
+    StringField,
+    SubmitField,
+    TextAreaField,
+    SelectMultipleField,
+    widgets,
+)
 from wtforms.validators import ValidationError, DataRequired, Length
-from app.models import User
+from app.models import User, followers
 from flask import request
+from sqlalchemy import and_
 
 
 class EditProfileForm(FlaskForm):
@@ -48,3 +55,28 @@ class MessageForm(FlaskForm):
         "Message", validators=[DataRequired(), Length(min=0, max=140)]
     )
     submit = SubmitField("Submit")
+
+
+class CreateChatForm(FlaskForm):
+    name = StringField("Chat Name", validators=[DataRequired()])
+    participants = SelectMultipleField(
+        "Participants", coerce=int, validators=[DataRequired()]
+    )
+    submit = SubmitField("Create Chat")
+
+    def __init__(self, current_user, *args, **kwargs):
+        super(CreateChatForm, self).__init__(*args, **kwargs)
+        mutual_followers = (
+            User.query.join(
+                followers,
+                and_(
+                    followers.c.follower_id == current_user.id,
+                    followers.c.followed_id == User.id,
+                ),
+            )
+            .filter(User.followed.any(id=current_user.id))
+            .all()
+        )
+        self.participants.choices = [
+            (user.id, user.username) for user in mutual_followers
+        ]

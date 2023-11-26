@@ -10,8 +10,14 @@ from flask import (
 )
 from flask_login import current_user, login_required
 from app import db
-from app.main.forms import EditProfileForm, EmptyForm, PostForm, MessageForm
-from app.models import User, Post, Message, Notification
+from app.main.forms import (
+    EditProfileForm,
+    EmptyForm,
+    PostForm,
+    MessageForm,
+    CreateChatForm,
+)
+from app.models import User, Post, ChatMessage, Notification, Chat, user_chats
 from app.main import bp
 from flask import g
 from app.main.forms import SearchForm
@@ -191,43 +197,69 @@ def search():
     )
 
 
-@bp.route("/send_message/<recipient>", methods=["GET", "POST"])
+@bp.route("/chats", methods=["GET", "POST"])
 @login_required
-def send_message(recipient):
-    user = User.query.filter_by(username=recipient).first_or_404()
-    form = MessageForm()
+def chats():
+    form = CreateChatForm(current_user)
     if form.validate_on_submit():
-        msg = Message(author=current_user, recipient=user, body=form.message.data)
-        db.session.add(msg)
-        user.add_notification("unread_message_count", user.new_messages())
+        chat_name = form.name.data
+        participants_ids = form.participants.data
+        participants_ids.append(current_user.id)
+        participants = User.query.filter(User.id.in_(participants_ids)).all()
+
+        if len(participants) < 2:
+            flash("Select at least one participant for the chat.")
+            return redirect(url_for("main.chats"))
+
+        chat = Chat(participants=participants, name=chat_name)
+        db.session.add(chat)
+        db.session.commit()
+        flash("Chat created successfully.")
+        return redirect(url_for("main.chats"))
+
+    chats = current_user.chats
+    return render_template(
+        "chats.html",
+        title="Chats",
+        form=form,
+        chats=chats,
+    )
+
+
+@bp.route("/chat/<int:chat_id>", methods=["GET", "POST"])
+@login_required
+def chat(chat_id):
+    db.session.execute(
+        user_chats.update()
+        .values(last_message_read_time=datetime.utcnow())
+        .where(user_chats.c.user_id == current_user.id)
+        .where(user_chats.c.chat_id == chat_id)
+    )
+    current_user.add_notification("unread_message_count", 0, chat_id)
+    db.session.commit()
+
+    chat = Chat.query.get_or_404(chat_id)
+
+    if not chat.is_participant(current_user):
+        flash("You are not a participant in this chat.")
+        return redirect(url_for("main.chats"))
+
+    form = MessageForm()
+
+    if form.validate_on_submit():
+        message = ChatMessage(sender=current_user, body=form.message.data, chat=chat)
+        db.session.add(message)
+        for user in chat.participants:
+            user.add_notification(
+                "unread_message_count", user.chat_new_messages(chat_id), chat_id
+            )
         db.session.commit()
         flash("Your message has been sent.")
-        return redirect(url_for("main.user", username=recipient))
-    return render_template(
-        "send_message.html", title="Send Message", form=form, recipient=recipient
-    )
+        return redirect(url_for("main.chat", chat_id=chat.id))
 
-
-@bp.route("/messages")
-@login_required
-def messages():
-    current_user.last_message_read_time = datetime.utcnow()
-    current_user.add_notification("unread_message_count", 0)
-    db.session.commit()
-    page = request.args.get("page", 1, type=int)
-    messages = current_user.messages_received.order_by(
-        Message.timestamp.desc()
-    ).paginate(
-        page=page, per_page=current_app.config["POSTS_PER_PAGE"], error_out=False
-    )
-    next_url = (
-        url_for("main.messages", page=messages.next_num) if messages.has_next else None
-    )
-    prev_url = (
-        url_for("main.messages", page=messages.prev_num) if messages.has_prev else None
-    )
+    messages = chat.messages.order_by(ChatMessage.timestamp.asc()).all()
     return render_template(
-        "messages.html", messages=messages.items, next_url=next_url, prev_url=prev_url
+        "chat.html", title="Chat", chat=chat, form=form, messages=messages
     )
 
 

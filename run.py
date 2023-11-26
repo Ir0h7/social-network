@@ -1,5 +1,5 @@
 from app import create_app, db
-from app.models import User, Post, Message, Notification
+from app.models import User, Post, ChatMessage, Notification, Chat
 
 
 if __name__ == "__main__":
@@ -11,7 +11,8 @@ if __name__ == "__main__":
             "db": db,
             "User": User,
             "Post": Post,
-            "Message": Message,
+            "Chat": Chat,
+            "ChatMessage": ChatMessage,
             "Notification": Notification,
         }
 

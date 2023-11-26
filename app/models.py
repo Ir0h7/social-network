@@ -81,30 +81,38 @@ class User(UserMixin, db.Model):
         lazy="dynamic",
     )
 
-    messages_sent = db.relationship(
-        "Message", foreign_keys="Message.sender_id", backref="author", lazy="dynamic"
-    )
-    messages_received = db.relationship(
-        "Message",
-        foreign_keys="Message.recipient_id",
-        backref="recipient",
-        lazy="dynamic",
-    )
-    last_message_read_time = db.Column(db.DateTime)
-
     notifications = db.relationship("Notification", backref="user", lazy="dynamic")
 
-    def new_messages(self):
-        last_read_time = self.last_message_read_time or datetime(1900, 1, 1)
-        return (
-            Message.query.filter_by(recipient=self)
-            .filter(Message.timestamp > last_read_time)
+    def chat_new_messages(self, chat_id):
+        last_read_time = datetime(1900, 1, 1)
+        user_chat = (
+            db.session.query(user_chats)
+            .filter_by(user_id=self.id, chat_id=chat_id)
+            .first()
+        )
+        last_read_time = user_chat.last_message_read_time
+        chat_messages_count = (
+            ChatMessage.query.filter(ChatMessage.chat_id == chat_id)
+            .filter(ChatMessage.sender_id != self.id)
+            .filter(ChatMessage.timestamp > last_read_time)
             .count()
         )
+        return chat_messages_count
 
-    def add_notification(self, name, data):
-        self.notifications.filter_by(name=name).delete()
-        n = Notification(name=name, payload_json=json.dumps(data), user=self)
+    def all_new_messages(self):
+        messages_count = sum(
+            [
+                self.chat_new_messages(string.chat_id)
+                for string in self.notifications.all()
+            ]
+        )
+        return messages_count
+
+    def add_notification(self, name, data, chat_id):
+        self.notifications.filter_by(chat_id=chat_id).delete()
+        n = Notification(
+            name=name, payload_json=json.dumps(data), user=self, chat_id=chat_id
+        )
         db.session.add(n)
         return n
 
@@ -171,25 +179,55 @@ class Post(SearchableMixin, db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
 
-    def __repr__(self):
-        return f"<Post {self.body}>"
+
+class Chat(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), index=True)
+    participants = db.relationship(
+        "User",
+        secondary="user_chats",
+        backref=db.backref("chats", lazy="dynamic"),
+        lazy="dynamic",
+    )
+    messages = db.relationship("ChatMessage", backref="chat", lazy="dynamic")
+
+    def is_participant(self, user):
+        return self.participants.filter_by(id=user.id).count() > 0
+
+    """def add_participant(self, user):
+        if not self.is_participant(user):
+            self.participants.append(user)
+
+    def remove_participant(self, user):
+        if self.is_participant(user):
+            self.participants.remove(user)"""
 
 
-class Message(db.Model):
+class ChatMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    recipient_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    body = db.Column(db.String(140))
+    sender = db.relationship("User", foreign_keys=[sender_id])
+    chat_id = db.Column(db.Integer, db.ForeignKey("chat.id"))
+    body = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 
     def __repr__(self):
-        return "<Message {}>".format(self.body)
+        return "<ChatMessage {}>".format(self.body)
+
+
+user_chats = db.Table(
+    "user_chats",
+    db.Column("user_id", db.Integer, db.ForeignKey("user.id")),
+    db.Column("chat_id", db.Integer, db.ForeignKey("chat.id")),
+    db.Column("last_message_read_time", db.DateTime),
+)
 
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), index=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    chat_id = db.Column(db.Integer, db.ForeignKey("chat.id"))
     timestamp = db.Column(db.Float, index=True, default=time)
     payload_json = db.Column(db.Text)
 

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Chats - Social-network
+{% endblock %}
+
+{% block app_content %}
+    <div class="container">
+        <h2>Create a New Chat</h2>
+        <form method="post" action="{{ url_for('main.chats') }}">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.name.label }}
+                {{ form.name(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.participants.label }}
+                {{ form.participants(class="form-control", multiple="multiple") }}
+            </div>
+            <button type="submit" class="btn btn-primary">Create Chat</button>
+        </form>
+
+        <hr>
+
+        <h2>Your Chats</h2>
+        <div class="list-group">
+            {% for chat in chats %}
+                <a href="{{ url_for('main.chat', chat_id=chat.id) }}" class="list-group-item">
+                    <h4 class="list-group-item-heading">{{ chat.name }}</h4>
+                    {% set new_messages = current_user.chat_new_messages(chat.id) %}
+                    <span id="message_count" class="badge"
+                          style="visibility: {% if new_messages %}visible
+                                             {% else %}hidden{% endif %};">
+                        {{ new_messages }}
+                    </span>
+                    <p class="list-group-item-text">
+                        {% if chat.messages.all() %}
+                            {{ chat.messages.all()[-1].body }}
+                        {% endif %}
+                    </p>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
