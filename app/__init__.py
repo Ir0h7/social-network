@@ -32,8 +32,11 @@ def create_app(config_class=Config):
     mail.init_app(app)
     bootstrap.init_app(app)
     moment.init_app(app)
-    app.opensearch = OpenSearch([app.config["OPENSEARCH_URL"]]) \
-        if app.config["OPENSEARCH_URL"] else None
+    app.opensearch = (
+        OpenSearch([app.config["OPENSEARCH_URL"]])
+        if app.config["OPENSEARCH_URL"]
+        else None
+    )
 
     from app.errors import bp as errors_bp
 

@@ -4,7 +4,6 @@ from wtforms import (
     SubmitField,
     TextAreaField,
     SelectMultipleField,
-    widgets,
 )
 from wtforms.validators import ValidationError, DataRequired, Length
 from app.models import User, followers

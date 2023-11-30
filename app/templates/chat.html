@@ -1,22 +1,39 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-  <h2>{{ chat.name }}</h2>
+  <link rel="stylesheet" href="/static/assets/css/Simple-Bootstrap-Chat.css">
 
-  <div class="chat-messages">
-    {% for message in messages %}
-      <div class="message {% if message.sender == current_user %}right{% else %}left{% endif %}">
-        <img src="{{ message.sender.avatar(30) }}"> {{ message.sender.username }}
-        <p>{{ message.body }}</p>
-        <span>{{ moment(message.timestamp).fromNow() }}</span>
-        <br></br>
+<header class="text-center">
+  <h1 class="fw-bold">{{ chat.name }}</h1>
+</header>
+
+<div class="message-container">
+  {% for message in messages %}
+    {% if message.sender != current_user %}
+      <div class="message user-1">
+        <img src="{{ message.sender.avatar(30) }}"> {{ message.sender.username }} | {{ moment(message.timestamp).fromNow() }}
+          <p>{{ message.body }}</p>
       </div>
-    {% endfor %}
-  </div>
 
+    {% else %}
+      <div class="message user-2">
+        {{ moment(message.timestamp).fromNow() }}
+          <p>{{ message.body }}</p>
+      </div>
+    {% endif %}
+  {% endfor %}
+
+</div>
+<br>
+<div class="form-message-custom">
   <form method="post" action="{{ url_for('main.chat', chat_id=chat.id) }}" class="mb-3">
     {{ form.hidden_tag() }}
-    {{ form.message(size=32) }}
-    {{ form.submit() }}
+    <div class="mb-3">
+      <textarea class="message-form-control" rows="4" name="message" placeholder="Type a message"></textarea>
+    </div>
+    <div class="mb-3">
+      <button class="btn btn-primary shadow d-block w-10" type="submit" name="submit" style="align-self: flex-start;">Send</button>
+    </div>
   </form>
+</div>
 {% endblock %}

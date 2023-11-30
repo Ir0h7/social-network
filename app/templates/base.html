@@ -1,140 +1,144 @@
-{% extends 'bootstrap/base.html' %}
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
+        <title>
+            {% block title %}
+            {% if title %}{{ title }} - AlmaMates{% else %}Welcome to AlmaMates{% endif %}
+            {% endblock %}
+        </title>
+        <link rel="stylesheet" href="/static/assets/bootstrap/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/static/assets/css/Inter.css">
+        <link rel="stylesheet" href="/static/assets/css/Social-Icon-Circle.css">
+    </head>
 
-{% block title %}
-    {% if title %}{{ title }} - Social-network{% else %}Welcome to Social-network{% endif %}
-{% endblock %}
-
-{% block navbar %}
-    <nav class="navbar navbar-default">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <img src="/static/images/logo.png" hspace="10px" vspace="10px" width="30" height="30" align="left" alt="">
-                <a class="navbar-brand" href="{{ url_for('main.index') }}">
-                    Social-network
+    <body>
+        {% block navbar %}
+        <nav class="navbar navbar-expand-md sticky-top py-3 navbar-dark" id="mainNav">
+            <div class="container">
+                <img src="/static/images/logo.png" hspace="10px" width="50" height="44" align="left" class="rounded-circle"/>
+                <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.index') }}">
+                    <span>AlmaMates</span>
                 </a>
+                <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navcol-1">
+                    <span class="visually-hidden">Toggle navigation</span>
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navcol-1">
+                    <ul class="navbar-nav mx-auto">
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('main.index') }}">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('main.explore') }}">Explore</a></li>
+                        {% if g.search_form %}
+                            <form class="navbar-form navbar-left" method="get" action="{{ url_for('main.search') }}">
+                                <div class="form-group">
+                                    {{ g.search_form.q(size=15, class='form-control', placeholder=g.search_form.q.label.text) }}
+                                </div>
+                            </form>
+                        {% endif %}
+                    </ul>
+                    <ul class="navbar-nav navbar-right">
+                        {% if current_user.is_anonymous %}
+                            <li><a class="btn btn-primary shadow" role="button" href="{{ url_for('auth.login') }}">Login</a></li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('main.chats') }}"> Chats
+                                    {% set new_messages = current_user.all_new_messages() %}
+                                    <button class="btn btn-circle" style="border-radius: 50px;/*border: 3px solid black;*/background-color: #3763f4; visibility: {% if new_messages %}visible{% else %}hidden{% endif %};" type="button">
+                                        <text>{{ new_messages }}</text>
+                                    </button>
+                                </a>
+                            </li>
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.user', username=current_user.username) }}">Profile</a></li>
+                            <li><a class="btn btn-primary shadow" role="button" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
             </div>
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav">
-                    <li><a href="{{ url_for('main.index') }}">Home</a></li>
-                    <li><a href="{{ url_for('main.explore') }}">Explore</a></li>
-                </ul>
-                {% if g.search_form %}
-                <form class="navbar-form navbar-left" method="get" action="{{ url_for('main.search') }}">
-                    <div class="form-group">
-                        {{ g.search_form.q(size=20, class='form-control', placeholder=g.search_form.q.label.text) }}
-                    </div>
-                </form>
-                {% endif %}
-                <ul class="nav navbar-nav navbar-right">
-                    {% if current_user.is_anonymous %}
-                    <li><a href="{{ url_for('auth.login') }}">Login</a></li>
-                    {% else %}
-                    <li>
-                        <a href="{{ url_for('main.chats') }}"> Chats
-                            {% set new_messages = current_user.all_new_messages() %}
-                            <span id="message_count" class="badge"
-                                  style="visibility: {% if new_messages %}visible
-                                                     {% else %}hidden{% endif %};">
-                                {{ new_messages }}
-                            </span>
-                        </a>
-                    </li>
-                    <li><a href="{{ url_for('main.user', username=current_user.username) }}">Profile</a></li>
-                    <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
-                    {% endif %}
-                </ul>
-            </div>
+        </nav>
+        {% endblock %}
+        {% block content %}
+        <div class="container">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-info" role="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+            {# application content needs to be provided in the app_content block #}
+            {% block app_content %}{% endblock %}
         </div>
-    </nav>
-{% endblock %}
+        {% endblock %}
 
-{% block content %}
-    <div class="container">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-info" role="alert">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-        {% endwith %}
-
-        {# application content needs to be provided in the app_content block #}
-        {% block app_content %}{% endblock %}
-    </div>
-{% endblock %}
-
-
-{% block scripts %}
-    {{ super() }}
-    {{ moment.include_moment() }}
-    <script>
-        $(function () {
-            var timer = null;
-            var xhr = null;
-            $('.user_popup').hover(
-                function(event) {
-                    // mouse in event handler
-                    var elem = $(event.currentTarget);
-                    timer = setTimeout(function() {
-                        timer = null;
-                        xhr = $.ajax(
-                            '/user/' + elem.first().text().trim() + '/popup').done(
-                                function(data) {
-                                    xhr = null;
-                                    elem.popover({
-                                        trigger: 'manual',
-                                        html: true,
-                                        animation: false,
-                                        container: elem,
-                                        content: data
-                                    }).popover('show');
-                                    flask_moment_render_all();
-                                }
-                            );
-                    }, 1000);
-                },
-                function(event) {
-                    // mouse out event handler
-                    var elem = $(event.currentTarget);
-                    if (timer) {
-                        clearTimeout(timer);
-                        timer = null;
-                    }
-                    else if (xhr) {
-                        xhr.abort();
-                        xhr = null;
-                    }
-                    else {
-                        elem.popover('destroy');
-                    }
-                }
-            );
-        });
-        function set_message_count(n) {
-            $('#message_count').text(n);
-            $('#message_count').css('visibility', n ? 'visible' : 'hidden');
-        }
-        {% if current_user.is_authenticated %}
-        $(function() {
-            var since = 0;
-            setInterval(function() {
-                $.ajax('{{ url_for('main.notifications') }}?since=' + since).done(
-                    function(notifications) {
-                        for (var i = 0; i < notifications.length; i++) {
-                            if (notifications[i].name == 'unread_message_count')
-                                set_message_count(notifications[i].data);
-                            since = notifications[i].timestamp;
+        {% block scripts %}
+            {{ moment.include_moment() }}
+            <script>
+                $(function () {
+                    var timer = null;
+                    var xhr = null;
+                    $('.user_popup').hover(
+                        function(event) {
+                            // mouse in event handler
+                            var elem = $(event.currentTarget);
+                            timer = setTimeout(function() {
+                                timer = null;
+                                xhr = $.ajax(
+                                    '/user/' + elem.first().text().trim() + '/popup').done(
+                                        function(data) {
+                                            xhr = null;
+                                            elem.popover({
+                                                trigger: 'manual',
+                                                html: true,
+                                                animation: false,
+                                                container: elem,
+                                                content: data
+                                            }).popover('show');
+                                            flask_moment_render_all();
+                                        }
+                                    );
+                            }, 1000);
+                        },
+                        function(event) {
+                            // mouse out event handler
+                            var elem = $(event.currentTarget);
+                            if (timer) {
+                                clearTimeout(timer);
+                                timer = null;
+                            }
+                            else if (xhr) {
+                                xhr.abort();
+                                xhr = null;
+                            }
+                            else {
+                                elem.popover('destroy');
+                            }
                         }
-                    }
-                );
-            }, 10000);
-        });
-        {% endif %}
-    </script>
-{% endblock %}
+                    );
+                });
+                function set_message_count(n) {
+                    $('#message_count').text(n);
+                    $('#message_count').css('visibility', n ? 'visible' : 'hidden');
+                }
+                {% if current_user.is_authenticated %}
+                $(function() {
+                    var since = 0;
+                    setInterval(function() {
+                        $.ajax('{{ url_for('main.notifications') }}?since=' + since).done(
+                            function(notifications) {
+                                for (var i = 0; i < notifications.length; i++) {
+                                    if (notifications[i].name == 'unread_message_count')
+                                        set_message_count(notifications[i].data);
+                                    since = notifications[i].timestamp;
+                                }
+                            }
+                        );
+                    }, 10000);
+                });
+                {% endif %}
+            </script>
+        {% endblock %}
+        <script src="/static/assets/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/static/assets/js/bold-and-dark.js"></script>
+    </body>
+</html>

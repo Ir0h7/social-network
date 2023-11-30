@@ -58,6 +58,34 @@ def index():
     )
 
 
+@bp.route("/like/<int:post_id>", methods=["GET", "POST"])
+@login_required
+def like_post(post_id):
+    form = EmptyForm()
+    if form.validate_on_submit():
+        post = Post.query.get_or_404(post_id)
+        if post is None:
+            flash("Post not found.")
+            return redirect(url_for("main.index"))
+        post.like(current_user)
+        db.session.commit()
+    return redirect(url_for("main.index"))
+
+
+@bp.route("/unlike/<int:post_id>", methods=["GET", "POST"])
+@login_required
+def unlike_post(post_id):
+    form = EmptyForm()
+    if form.validate_on_submit():
+        post = Post.query.get_or_404(post_id)
+        if post is None:
+            flash("Post not found.")
+            return redirect(url_for("main.index"))
+        post.unlike(current_user)
+        db.session.commit()
+    return redirect(url_for("main.index"))
+
+
 @bp.route("/explore")
 @login_required
 def explore():
@@ -67,12 +95,14 @@ def explore():
     )
     next_url = url_for("main.explore", page=posts.next_num) if posts.has_next else None
     prev_url = url_for("main.explore", page=posts.prev_num) if posts.has_prev else None
+    form = EmptyForm()
     return render_template(
-        "index.html",
+        "explore.html",
         title="Explore",
         posts=posts.items,
         next_url=next_url,
         prev_url=prev_url,
+        form=form,
     )
 
 
@@ -188,12 +218,14 @@ def search():
         if page > 1
         else None
     )
+    form = EmptyForm()
     return render_template(
         "search.html",
         title="Search",
         posts=posts,
         next_url=next_url,
         prev_url=prev_url,
+        form=form,
     )
 
 

@@ -1,11 +1,16 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
     <h1>Edit Profile</h1>
-    <div class="row">
-        <div class="col-md-4">
-            {{ wtf.quick_form(form) }}
+    </br>
+    <form method="post" action="{{ url_for('main.edit_profile') }}">
+        {{ form.hidden_tag() }}
+        <div class="mb-3"><input class="form-control" type="text" name="username" placeholder="Username"></div>
+        <div class="mb-3">
+            <textarea class="form-control" rows="4" name="about_me" placeholder="About me"></textarea>
         </div>
-    </div>
+        <div class="mb-3">
+            <button class="btn btn-primary shadow d-block w-10" type="submit" name="submit">Save</button>
+        </div>
+    </form>
 {% endblock %}

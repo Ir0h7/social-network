@@ -5,33 +5,40 @@
         <tr>
             <td width="256px"><img src="{{ user.avatar(256) }}"></td>
             <td>
-                <h1>User: {{ user.username }}</h1>
-                {% if user.about_me %}<p>{{ user.about_me }}</p>{% endif %}
+                <h1 class="text-muted mb-4 fw-bold">User: {{ user.username }}</h1>
+                {% if user.about_me %}<p class="text-muted mb-4">{{ user.about_me }}</p>{% endif %}
                 {% if user.last_seen %}
-                    <p>Last seen on: {{ moment(user.last_seen).calendar() }}</p>
+                    <p class="text-muted mb-4">Last seen on: {{ moment(user.last_seen).calendar() }}</p>
                 {% endif %}
-                <p>{{ user.followers.count() }} followers, {{ user.followed.count() }} following.</p>
+                <p class="text-muted mb-4">{{ user.followers.count() }} followers, {{ user.followed.count() }} following.</p>
                 {% if user == current_user %}
-                <p><a href="{{ url_for('main.edit_profile') }}">Edit your profile</a></p>
+                <div class="mb-3">
+                    <button class="btn btn-primary shadow d-block w-10">
+                        <a href="{{ url_for('main.edit_profile') }}">Edit your profile</a>
+                    </button>
+                </div>
+
                 {% elif not current_user.is_following(user) %}
                 <p>
                     <form action="{{ url_for('main.follow', username=user.username) }}" method="post">
                         {{ form.hidden_tag() }}
-                        {{ form.submit(value='Follow', class_='btn btn-default') }}
+                        <button class="btn btn-outline-light btn-sm" type="submit" name="submit">Follow</button>
                     </form>
                 </p>
                 {% else %}
                 <p>
                     <form action="{{ url_for('main.unfollow', username=user.username) }}" method="post">
                         {{ form.hidden_tag() }}
-                        {{ form.submit(value='Unfollow', class_='btn btn-default') }}
+                        <button class="btn btn-outline-light btn-sm" type="submit" name="submit">Unfollow</button>
                     </form>
                 </p>
                 {% endif %}
                 {% if user != current_user %}
-                <p>
-                    <a href="{{ url_for('main.chats') }}"> Create chat with {{ user.username }}</a>
-                </p>
+                <div class="mb-3">
+                    <button class="btn btn-primary shadow d-block w-10">
+                        <a href="{{ url_for('main.chats') }}">Create chat with {{ user.username }}</a>
+                    </button>
+                </div>
                 {% endif %}
             </td>
         </tr>
@@ -39,18 +46,8 @@
     {% for post in posts %}
         {% include '_post.html' %}
     {% endfor %}
-    <nav aria-label="...">
-        <ul class="pager">
-            <li class="next{% if not prev_url %} disabled{% endif %}">
-                <a href="{{ prev_url or '#' }}">
-                    Newer posts <span aria-hidden="true">&rarr;</span>
-                </a>
-            </li>
-            <li class="previous{% if not next_url %} disabled{% endif %}">
-                <a href="{{ next_url or '#' }}">
-                    <span aria-hidden="true">&larr;</span> Older posts
-                </a>
-            </li>
-        </ul>
-    </nav>
+    <ul class="pagination">
+        <li class="page-item"><a class="page-link text-muted" href="{{ next_url or '#' }}">Previous</a></li>
+        <li class="page-item"><a class="page-link text-muted" href="{{ prev_url or '#' }}">Next</a></li>
+    </ul>
 {% endblock %}

@@ -1,27 +1,24 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
     <h1>Hi, {{ current_user.username }}!</h1>
     {% if form %}
-    {{ wtf.quick_form(form) }}
+    <form method="post" action="{{ url_for('main.index') }}">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            <textarea class="form-control" rows="4" name="post" placeholder="Say something"></textarea>
+        </div>
+        <div class="mb-3">
+            <button class="btn btn-primary shadow d-block w-10" type="submit" name="submit">Publish</button>
+        </div>
+    </form>
     <br>
     {% endif %}
     {% for post in posts %}
         {% include '_post.html' %}
     {% endfor %}
-    <nav aria-label="...">
-        <ul class="pager">
-            <li class="next{% if not prev_url %} disabled{% endif %}">
-                <a href="{{ prev_url or '#' }}">
-                    Newer posts <span aria-hidden="true">&rarr;</span>
-                </a>
-            </li>
-            <li class="previous{% if not next_url %} disabled{% endif %}">
-                <a href="{{ next_url or '#' }}">
-                    <span aria-hidden="true">&larr;</span> Older posts
-                </a>
-            </li>
-        </ul>
-    </nav>
+    <ul class="pagination">
+        <li class="page-item"><a class="page-link text-muted" href="{{ next_url or '#' }}">Previous</a></li>
+        <li class="page-item"><a class="page-link text-muted" href="{{ prev_url or '#' }}">Next</a></li>
+    </ul>
 {% endblock %}
