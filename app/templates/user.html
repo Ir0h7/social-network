@@ -1,9 +1,15 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-    <table class="table table-hover">
+    <table class="table table-hover" style="border-bottom: 1px solid rgba(0, 0, 0, 0);">
         <tr>
-            <td width="256px"><img src="{{ user.avatar(256) }}"></td>
+            <td width="256px">
+                {% if user.avatar_path %}
+                    <img src="{{ user.avatar_path }}" alt="Avatar" class="img-thumbnail">
+                {% else %}
+                    <img src="{{ user.avatar(256) }}">
+                {% endif %}
+            </td>
             <td>
                 <h1 class="text-muted mb-4 fw-bold">User: {{ user.username }}</h1>
                 {% if user.about_me %}<p class="text-muted mb-4">{{ user.about_me }}</p>{% endif %}

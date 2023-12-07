@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-  <link rel="stylesheet" href="/static/assets/css/Simple-Bootstrap-Chat.css">
+<link rel="stylesheet" href="/static/assets/css/Simple-Bootstrap-Chat.css">
 
 <header class="text-center">
   <h1 class="fw-bold">{{ chat.name }}</h1>
@@ -30,6 +30,13 @@
     {{ form.hidden_tag() }}
     <div class="mb-3">
       <textarea class="message-form-control" rows="4" name="message" placeholder="Type a message"></textarea>
+      {% if form.message.errors %}
+        <div class="alert alert-danger" role="alert">
+          {% for error in form.message.errors %}
+            {{ error }}
+          {% endfor %}
+        </div>
+      {% endif %}
     </div>
     <div class="mb-3">
       <button class="btn btn-primary shadow d-block w-10" type="submit" name="submit" style="align-self: flex-start;">Send</button>

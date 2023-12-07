@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed
 from wtforms import (
     StringField,
     SubmitField,
@@ -12,6 +13,9 @@ from sqlalchemy import and_
 
 
 class EditProfileForm(FlaskForm):
+    avatar = FileField(
+        "Upload Image", validators=[FileAllowed(["jpg", "png", "jpeg", "gif"])]
+    )
     username = StringField("Username", validators=[DataRequired()])
     about_me = TextAreaField("About me", validators=[Length(min=0, max=140)])
     submit = SubmitField("Submit")
@@ -28,8 +32,11 @@ class EditProfileForm(FlaskForm):
 
 
 class PostForm(FlaskForm):
+    photo = FileField(
+        "Upload Image", validators=[FileAllowed(["jpg", "png", "jpeg", "gif"])]
+    )
     post = TextAreaField(
-        "Say something", validators=[DataRequired(), Length(min=1, max=140)]
+        "Say something", validators=[DataRequired(), Length(min=1, max=1000)]
     )
     submit = SubmitField("Submit")
 
@@ -51,7 +58,7 @@ class SearchForm(FlaskForm):
 
 class MessageForm(FlaskForm):
     message = TextAreaField(
-        "Message", validators=[DataRequired(), Length(min=0, max=140)]
+        "Message", validators=[DataRequired(), Length(min=0, max=700)]
     )
     submit = SubmitField("Submit")
 

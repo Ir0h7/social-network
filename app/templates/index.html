@@ -3,10 +3,28 @@
 {% block app_content %}
     <h1>Hi, {{ current_user.username }}!</h1>
     {% if form %}
-    <form method="post" action="{{ url_for('main.index') }}">
+    <form method="post" action="{{ url_for('main.index') }}" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
         <div class="mb-3">
+            {{ form.photo.label(class="form-label") }}
+            {{ form.photo(class="form-control") }}
+            {% if form.photo.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {% for error in form.photo.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
             <textarea class="form-control" rows="4" name="post" placeholder="Say something"></textarea>
+            {% if form.post.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {% for error in form.post.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
         <div class="mb-3">
             <button class="btn btn-primary shadow d-block w-10" type="submit" name="submit">Publish</button>

@@ -13,11 +13,25 @@
             {{ form.hidden_tag() }}
             <div class="form-group">
                 <input class="form-control" type="text" name="name" placeholder="Chat name">
+                {% if form.name.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.name.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
             </br>
             <div class="form-group">
                 {{ form.participants.label }}
                 {{ form.participants(class="form-control", multiple="multiple") }}
+                {% if form.participants.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.participants.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
             </br>
             <button class="btn btn-primary shadow d-block w-10" type="submit" name="submit">Create Chat</button>

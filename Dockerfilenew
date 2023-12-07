@@ -1,0 +1,19 @@
+FROM python:3.11.4
+
+WORKDIR /app
+
+RUN adduser appuser
+
+COPY requirements.txt requirements.txt
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+RUN chown -R appuser:appuser ./
+
+USER appuser
+
+EXPOSE 5001
+
+CMD gunicorn -b :5001 run:app

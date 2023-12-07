@@ -1,7 +1,8 @@
 from datetime import datetime
 from app import db, login
-from flask import current_app
+from flask import current_app, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from flask_login import UserMixin
 from hashlib import md5
 from time import time
@@ -67,6 +68,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(256))
+    avatar_path = db.Column(db.Text)
     posts = db.relationship(
         "Post", backref="author", lazy="dynamic", cascade="all, delete-orphan"
     )
@@ -128,6 +130,11 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def set_avatar(self, file):
+        filename = secure_filename(file.filename)
+        file.save("app/static/avatars/" + filename)
+        self.avatar_path = url_for("static", filename="avatars/" + filename)
+
     def avatar(self, size):
         digest = md5(self.email.lower().encode("utf-8")).hexdigest()
         return "https://www.gravatar.com/avatar/{}?d=identicon&s={}".format(
@@ -185,7 +192,8 @@ user_likes = db.Table(
 class Post(SearchableMixin, db.Model):
     __searchable__ = ["body"]
     id = db.Column(db.Integer, primary_key=True)
-    body = db.Column(db.String(140))
+    body = db.Column(db.Text)
+    photo_path = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
 
@@ -195,6 +203,11 @@ class Post(SearchableMixin, db.Model):
         backref=db.backref("likes", lazy="dynamic"),
         lazy="dynamic",
     )
+
+    def set_photo(self, file):
+        filename = secure_filename(file.filename)
+        file.save("app/static/photos/" + filename)
+        self.photo_path = url_for("static", filename="photos/" + filename)
 
     def like(self, user):
         if not self.is_liked(user):

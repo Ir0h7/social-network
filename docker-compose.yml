@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15-bullseye
+    container_name: db
+    environment:
+      - POSTGRES_PASSWORD=20453843
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_DB=social_network
+    networks:
+      - social_network
+    ports:
+      - 5432:5432
+
+  almamates:
+    build:
+      context: .
+      dockerfile: Dockerfilenew
+      args:
+        platform: linux/amd64
+    image: ir0h/almamates
+    container_name: almamates
+    env_file:
+      - .env
+    networks:
+      - social_network
+    ports:
+      - 5001:5001
+
+  opensearch:
+    image: opensearchproject/opensearch:latest
+    container_name: opensearch
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+    networks:
+      - social_network
+    ports:
+      - 9200:9200
+      - 9600:9600
+
+networks:
+  social_network:
+    driver: bridge
