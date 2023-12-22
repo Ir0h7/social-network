@@ -11,8 +11,13 @@
   {% for message in messages %}
     {% if message.sender != current_user %}
       <div class="message user-1">
-        <img src="{{ message.sender.avatar(30) }}"> {{ message.sender.username }} | {{ moment(message.timestamp).fromNow() }}
-          <p>{{ message.body }}</p>
+        {% if message.sender.avatar_path %}
+          <img src="{{ message.sender.avatar_path }}" alt="Avatar" class="img-thumbnail" width="30px"/>
+        {% else %}
+          <img src="{{ message.sender.avatar(30) }}" class="img-thumbnail">
+        {% endif %}
+        {{ message.sender.username }} | {{ moment(message.timestamp).fromNow() }}
+        <p>{{ message.body }}</p>
       </div>
 
     {% else %}

@@ -19,5 +19,4 @@ class Config(object):
     ADMINS = ["dmitrys.test@yandex.ru"]
 
     OPENSEARCH_URL = os.getenv("OPENSEARCH_URL")
-
     POSTS_PER_PAGE = 10

@@ -1,7 +1,7 @@
 import logging
 from logging.handlers import RotatingFileHandler
 import os
-from flask import Flask, request, current_app
+from flask import Flask, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -23,7 +23,7 @@ moment = Moment()
 
 
 def create_app(config_class=Config):
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder="static")
     app.config.from_object(config_class)
 
     db.init_app(app)
@@ -37,6 +37,12 @@ def create_app(config_class=Config):
         if app.config["OPENSEARCH_URL"]
         else None
     )
+
+    @app.route("/static/<path:filename>")
+    def custom_static(filename):
+        response = send_from_directory(app.static_folder, filename)
+        response.cache_control.max_age = 60 * 10
+        return response
 
     from app.errors import bp as errors_bp
 
@@ -70,4 +76,4 @@ def create_app(config_class=Config):
     return app
 
 
-from app import models, db_filler
+from app import models
